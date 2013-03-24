@@ -52,23 +52,13 @@ public class MainActivity extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
-		 /*
-         * Create the main handler on the main thread so it is bound to the main
-         * thread's message queue. 
-         */
-        mMainHandler = new Handler() {
-            
+
+        mMainHandler = new Handler() {           
             public void handleMessage(Message msg) {
-                
-                //Log.i(TAG, "Got an incoming message from the child thread - "  + (String)msg.obj);
-                
-                /*
-                 * Handle the message coming from the child thread.
-                 */
                // mTextView.setText(mTextView.getText() + (String)msg.obj + "\n");
             }
         };
-        new ChildThread().start();
+        new RequestThread().start();
 	}
 
 	@Override
@@ -79,136 +69,77 @@ public class MainActivity extends Activity {
 	}
 
 	public void OffLed(View view) {
-		new Thread(new Runnable() {
-            public void run() {
-                 HttpClient httpclient = new DefaultHttpClient();
-                    HttpGet httpget2 = new HttpGet("http://home.wangkangle.com/set/low");
-                        HttpResponse response2 = null;
-                        try {
-                            response2 = httpclient.execute(httpget2);
-                        } catch (ClientProtocolException e1) {
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
-                        } catch (IOException e1) {
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
-                        }
-                    HttpEntity entity = response2.getEntity();
-                    if (entity != null) {
-                        long len = entity.getContentLength();
-                        /*if (len != -1)*/ {
-                            try {
-                                    String content_baidu = EntityUtils.toString(entity);
-                                    //Log.d(TAG, content_baidu);
-                                    
-                                } catch (ParseException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                } catch (org.apache.http.ParseException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                } catch (IOException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                }
-                        } /*else {
-                            // Stream content out
-                        }*/
-                    }
-                    }
-            
-        }).start();
+		 if (mChildHandler != null) {
+	            Message msg = mChildHandler.obtainMessage();
+	            msg.obj = "low";
+	            mChildHandler.sendMessage(msg);
+	        }
 	}
 
 	public void OnLed(View view) {
-		 /*
-         * We cannot guarantee that the mChildHandler is created 
-         * in the child thread by the time the user clicks the button.
-         */
         if (mChildHandler != null) {
-            
-            /* 
-             * Send a message to the child thread.
-             */
             Message msg = mChildHandler.obtainMessage();
-            msg.obj = mMainHandler.getLooper().getThread().getName() + " says Hello";
+            msg.obj = "high";
             mChildHandler.sendMessage(msg);
-            //Log.i(TAG, "Send a message to the child thread - " + (String)msg.obj);
         }
-		
-		/*
-		new Thread(new Runnable() {
-            public void run() {
-                 HttpClient httpclient = new DefaultHttpClient();
-                    HttpGet httpget2 = new HttpGet("http://home.wangkangle.com/set/high");
-                        HttpResponse response2 = null;
-                        try {
-                            response2 = httpclient.execute(httpget2);
-                        } catch (ClientProtocolException e1) {
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
-                        } catch (IOException e1) {
-                            // TODO Auto-generated catch block
-                            e1.printStackTrace();
-                        }
-                    HttpEntity entity = response2.getEntity();
-                    if (entity != null) {
-                        long len = entity.getContentLength();
-                        //if (len != -1) 
-                        {
-                            try {
-                                      String content_baidu = EntityUtils.toString(entity);
-                                    //Log.d(TAG, content_baidu);
-                                    
-                                } catch (ParseException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                } catch (org.apache.http.ParseException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                } catch (IOException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                }
-                        }
-                        // else {
-                            // Stream content out
-                        //}
-                    }
-                    }
-            
-        }).start();*/
 	}
 	
-	
-    class ChildThread extends Thread {      
+    class RequestThread extends Thread {      
         private static final String INNER_TAG = "ChildThread";     
+        HttpClient httpclient = new DefaultHttpClient();
+        HttpGet httpget2 = null;
         public void run() {          
             this.setName("child");
             Looper.prepare();
             mChildHandler = new Handler() {          
                 public void handleMessage(Message msg) {  
-                	String s_msg = (String)msg.obj;
-                    Log.i(INNER_TAG, "Got an incoming message from the main thread - " + s_msg);                           
-                    try {
-                    sleep(100);
-                        
-                       
-                        Message toMain = mMainHandler.obtainMessage();
-                        toMain.obj = "This is " + this.getLooper().getThread().getName() + 
-                            ".  Did you send me \"" + (String)msg.obj + "\"?";
-                        mMainHandler.sendMessage(toMain);
-                        Log.i(INNER_TAG, "Send a message to the main thread - " + (String)toMain.obj);
-                        
-                    } catch (InterruptedException e) {
-                      
-                        e.printStackTrace();
-                    }
-                    
-                }
-            };
-            
-            Log.i(INNER_TAG, "Child handler is bound to - " + mChildHandler.getLooper().getThread().getName());                   
+					String s_msg = (String) msg.obj;							
+					if (s_msg.equals("high")) {
+						httpget2 = new HttpGet(
+								"http://home.wangkangle.com/set/high");
+					} else if (s_msg.equals("low")) {
+						httpget2 = new HttpGet(
+								"http://home.wangkangle.com/set/low");
+					}
+					
+					HttpResponse response2 = null;
+					try {
+						response2 = httpclient.execute(httpget2);
+					} catch (ClientProtocolException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					HttpEntity entity = response2.getEntity();
+					/*
+					if (entity != null) {
+						long len = entity.getContentLength();
+					
+						/*
+						{
+							try {
+								String content_baidu = EntityUtils
+										.toString(entity);
+								// Log.d(TAG, content_baidu);
+
+							} catch (ParseException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (org.apache.http.ParseException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+					
+					}
+					*/
+				}                 
+            };              
             Looper.loop();
         }
     }
