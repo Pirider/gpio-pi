@@ -48,17 +48,21 @@ import android.view.Menu;
 
 public class MainActivity extends Activity {
 	private Handler mMainHandler, mChildHandler;
+	private OnButton onButton = new OnButton();
+	private OffButton offButton = new OffButton();
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
-        mMainHandler = new Handler() {           
-            public void handleMessage(Message msg) {
-               // mTextView.setText(mTextView.getText() + (String)msg.obj + "\n");
-            }
-        };
-        new RequestThread().start();
+		mMainHandler = new Handler() {
+			public void handleMessage(Message msg) {
+				// mTextView.setText(mTextView.getText() + (String)msg.obj +
+				// "\n");
+			}
+		};
+		new RequestThread().start();
 	}
 
 	@Override
@@ -69,42 +73,49 @@ public class MainActivity extends Activity {
 	}
 
 	public void OffLed(View view) {
-		 if (mChildHandler != null) {
-	            Message msg = mChildHandler.obtainMessage();
-	            msg.obj = "low";
-	            mChildHandler.sendMessage(msg);
-	        }
+		offButton.clicked("low");
 	}
 
 	public void OnLed(View view) {
-        if (mChildHandler != null) {
-            Message msg = mChildHandler.obtainMessage();
-            msg.obj = "high";
-            mChildHandler.sendMessage(msg);
-        }
+		onButton.clicked("high");
 	}
-	
-    class RequestThread extends Thread {      
-        private static final String INNER_TAG = "ChildThread";     
-        HttpClient httpclient = new DefaultHttpClient();
-        HttpGet httpget2 = null;
-        public void run() {          
-            this.setName("child");
-            Looper.prepare();
-            mChildHandler = new Handler() {          
-                public void handleMessage(Message msg) {  
-					String s_msg = (String) msg.obj;							
+
+	class Button {
+		public void clicked(String value) {
+			Message msg = mChildHandler.obtainMessage();
+			msg.obj = value;
+			mChildHandler.sendMessage(msg);
+		}
+	}
+
+	class OnButton extends Button {
+	}
+
+	class OffButton extends Button {
+	}
+
+	class RequestThread extends Thread {
+		private static final String INNER_TAG = "ChildThread";
+		private HttpClient httpclient = new DefaultHttpClient();
+		private HttpGet httpget = null;
+		private HttpResponse response = null;
+
+		public void run() {
+			this.setName("child");
+			Looper.prepare();
+			mChildHandler = new Handler() {
+				public void handleMessage(Message msg) {
+					String s_msg = (String) msg.obj;
 					if (s_msg.equals("high")) {
-						httpget2 = new HttpGet(
+						httpget = new HttpGet(
 								"http://home.wangkangle.com/set/high");
 					} else if (s_msg.equals("low")) {
-						httpget2 = new HttpGet(
+						httpget = new HttpGet(
 								"http://home.wangkangle.com/set/low");
 					}
-					
-					HttpResponse response2 = null;
+
 					try {
-						response2 = httpclient.execute(httpget2);
+						response = httpclient.execute(httpget);
 					} catch (ClientProtocolException e1) {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
@@ -112,35 +123,26 @@ public class MainActivity extends Activity {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
-					HttpEntity entity = response2.getEntity();
+					HttpEntity entity = response.getEntity();
 					/*
-					if (entity != null) {
-						long len = entity.getContentLength();
-					
-						/*
-						{
-							try {
-								String content_baidu = EntityUtils
-										.toString(entity);
-								// Log.d(TAG, content_baidu);
-
-							} catch (ParseException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (org.apache.http.ParseException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
-					
-					}
-					*/
-				}                 
-            };              
-            Looper.loop();
-        }
-    }
+					 * if (entity != null) { long len =
+					 * entity.getContentLength();
+					 * 
+					 * /* { try { String content_baidu = EntityUtils
+					 * .toString(entity); // Log.d(TAG, content_baidu);
+					 * 
+					 * } catch (ParseException e) { // TODO Auto-generated catch
+					 * block e.printStackTrace(); } catch
+					 * (org.apache.http.ParseException e) { // TODO
+					 * Auto-generated catch block e.printStackTrace(); } catch
+					 * (IOException e) { // TODO Auto-generated catch block
+					 * e.printStackTrace(); } }
+					 * 
+					 * }
+					 */
+				}
+			};
+			Looper.loop();
+		}
+	}
 }
