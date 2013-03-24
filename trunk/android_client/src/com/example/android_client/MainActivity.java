@@ -45,17 +45,22 @@ import android.net.ParseException;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
+import android.widget.Button;
+//import android.R;
 
 public class MainActivity extends Activity {
 	private Handler mMainHandler, mChildHandler;
-	private OnButton onButton = new OnButton();
-	private OffButton offButton = new OffButton();
-
+	private OnButton onButton = null;
+	private OffButton offButton = null;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
 		setContentView(R.layout.activity_main);
-
+		
+		onButton = new OnButton((android.widget.Button) findViewById(R.id.button1));
+		offButton = new OffButton((android.widget.Button) findViewById(R.id.button2));
 		mMainHandler = new Handler() {
 			public void handleMessage(Message msg) {
 				// mTextView.setText(mTextView.getText() + (String)msg.obj +
@@ -71,7 +76,7 @@ public class MainActivity extends Activity {
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
 	}
-
+ 
 	public void OffLed(View view) {
 		offButton.clicked("low");
 	}
@@ -81,6 +86,10 @@ public class MainActivity extends Activity {
 	}
 
 	class Button {
+		private android.widget.Button button_view = null;
+		public Button(android.widget.Button button) {
+			button_view = button;
+		}
 		public void clicked(String value) {
 			Message msg = mChildHandler.obtainMessage();
 			msg.obj = value;
@@ -89,9 +98,15 @@ public class MainActivity extends Activity {
 	}
 
 	class OnButton extends Button {
+		public OnButton(android.widget.Button button) {
+			super(button);
+		}
 	}
 
 	class OffButton extends Button {
+		public OffButton(android.widget.Button button) {
+			super(button);
+		}
 	}
 
 	class RequestThread extends Thread {
