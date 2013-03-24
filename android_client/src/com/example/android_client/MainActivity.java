@@ -62,7 +62,7 @@ public class MainActivity extends Activity {
 		new Thread(new Runnable() {
             public void run() {
                  HttpClient httpclient = new DefaultHttpClient();
-                    HttpGet httpget2 = new HttpGet("http://home.wangkangle.com:8000/set/low");
+                    HttpGet httpget2 = new HttpGet("http://home.wangkangle.com/set/low");
                         HttpResponse response2 = null;
                         try {
                             response2 = httpclient.execute(httpget2);
@@ -104,7 +104,7 @@ public class MainActivity extends Activity {
 		new Thread(new Runnable() {
             public void run() {
                  HttpClient httpclient = new DefaultHttpClient();
-                    HttpGet httpget2 = new HttpGet("http://home.wangkangle.com:8000/set/high");
+                    HttpGet httpget2 = new HttpGet("http://home.wangkangle.com/set/high");
                         HttpResponse response2 = null;
                         try {
                             response2 = httpclient.execute(httpget2);
