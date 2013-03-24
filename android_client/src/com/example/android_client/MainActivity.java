@@ -63,8 +63,12 @@ public class MainActivity extends Activity {
 		offButton = new OffButton((android.widget.Button) findViewById(R.id.button2));
 		mMainHandler = new Handler() {
 			public void handleMessage(Message msg) {
-				// mTextView.setText(mTextView.getText() + (String)msg.obj +
-				// "\n");
+				String[] callback_msg = ((String) msg.obj).split(":");
+				if (callback_msg[0].equals("high")) {
+					onButton.callback(callback_msg[1]);
+				} else if(callback_msg[0].equals("low")) {
+					offButton.callback(callback_msg[1]);
+				}				
 			}
 		};
 		new RequestThread().start();
@@ -94,6 +98,9 @@ public class MainActivity extends Activity {
 			Message msg = mChildHandler.obtainMessage();
 			msg.obj = value;
 			mChildHandler.sendMessage(msg);
+		}
+		public void callback(String msg) {
+			Log.i("BTK", msg);
 		}
 	}
 
@@ -138,24 +145,32 @@ public class MainActivity extends Activity {
 						// TODO Auto-generated catch block
 						e1.printStackTrace();
 					}
+
 					HttpEntity entity = response.getEntity();
-					/*
-					 * if (entity != null) { long len =
-					 * entity.getContentLength();
-					 * 
-					 * /* { try { String content_baidu = EntityUtils
-					 * .toString(entity); // Log.d(TAG, content_baidu);
-					 * 
-					 * } catch (ParseException e) { // TODO Auto-generated catch
-					 * block e.printStackTrace(); } catch
-					 * (org.apache.http.ParseException e) { // TODO
-					 * Auto-generated catch block e.printStackTrace(); } catch
-					 * (IOException e) { // TODO Auto-generated catch block
-					 * e.printStackTrace(); } }
-					 * 
-					 * }
-					 */
+					if (entity != null) {
+						long len = entity.getContentLength();
+						{
+							try {
+								String contents = EntityUtils.toString(entity);
+								Message toMain = mMainHandler.obtainMessage();
+		                        toMain.obj = s_msg + ":" + contents;
+		                        mMainHandler.sendMessage(toMain);
+								
+							} catch (ParseException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (org.apache.http.ParseException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							} catch (IOException e) {
+								// TODO Auto-generated catch block
+								e.printStackTrace();
+							}
+						}
+					}
+
 				}
+
 			};
 			Looper.loop();
 		}
