@@ -17,6 +17,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
+import android.R.integer;
 import android.net.ParseException;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,6 +27,7 @@ import android.os.Message;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.support.v4.app.NavUtils;
 import android.util.Log;
 import android.view.Menu;
@@ -49,6 +51,8 @@ import android.widget.Button;
 //import android.R;
 
 public class MainActivity extends Activity {
+	private static final int WHITE = 0xFFFFFFFF;
+	private static final int GREEN = 0xFF00FF00;
 	private Handler mMainHandler, mChildHandler;
 	private OnButton onButton = null;
 	private OffButton offButton = null;
@@ -65,9 +69,11 @@ public class MainActivity extends Activity {
 			public void handleMessage(Message msg) {
 				String[] callback_msg = ((String) msg.obj).split(":");
 				if (callback_msg[0].equals("high")) {
-					onButton.callback(callback_msg[1]);
+					onButton.setColor(GREEN);
+					offButton.setColor(WHITE);
 				} else if(callback_msg[0].equals("low")) {
-					offButton.callback(callback_msg[1]);
+					offButton.setColor(GREEN);
+					onButton.setColor(WHITE);					
 				}				
 			}
 		};
@@ -90,7 +96,7 @@ public class MainActivity extends Activity {
 	}
 
 	class Button {
-		private android.widget.Button button_view = null;
+		protected android.widget.Button button_view = null;
 		public Button(android.widget.Button button) {
 			button_view = button;
 		}
@@ -99,8 +105,8 @@ public class MainActivity extends Activity {
 			msg.obj = value;
 			mChildHandler.sendMessage(msg);
 		}
-		public void callback(String msg) {
-			Log.i("BTK", msg);
+		public void setColor(int color){
+			this.button_view.getBackground().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
 		}
 	}
 
@@ -108,6 +114,9 @@ public class MainActivity extends Activity {
 		public OnButton(android.widget.Button button) {
 			super(button);
 		}
+		
+		
+		
 	}
 
 	class OffButton extends Button {
