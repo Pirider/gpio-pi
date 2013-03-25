@@ -2,7 +2,10 @@ package com.example.android_client;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -53,31 +56,30 @@ import android.widget.Button;
 public class MainActivity extends Activity {
 	private static final int WHITE = 0xFFFFFFFF;
 	private static final int GREEN = 0xFF00FF00;
-	private Handler mMainHandler, mChildHandler;
+	private Handler mMainHandler, mRequestHandler, mBeatHandler;
 	private OnButton onButton = null;
 	private OffButton offButton = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		
-		setContentView(R.layout.activity_main);
-		
+		super.onCreate(savedInstanceState);	
+		setContentView(R.layout.activity_main);		
 		onButton = new OnButton((android.widget.Button) findViewById(R.id.button1));
 		offButton = new OffButton((android.widget.Button) findViewById(R.id.button2));
 		mMainHandler = new Handler() {
 			public void handleMessage(Message msg) {
-				String[] callback_msg = ((String) msg.obj).split(":");
-				if (callback_msg[0].equals("high")) {
+				String callback_msg = (String) msg.obj;
+				if (callback_msg.equals("high")) {
 					onButton.setColor(GREEN);
 					offButton.setColor(WHITE);
-				} else if(callback_msg[0].equals("low")) {
+				} else if(callback_msg.equals("low")) {
 					offButton.setColor(GREEN);
 					onButton.setColor(WHITE);					
 				}				
 			}
 		};
 		new RequestThread().start();
+		Beat beat = new Beat();
 	}
 
 	@Override
@@ -88,11 +90,11 @@ public class MainActivity extends Activity {
 	}
  
 	public void OffLed(View view) {
-		offButton.clicked("low");
+		offButton.clicked("set/low");
 	}
 
 	public void OnLed(View view) {
-		onButton.clicked("high");
+		onButton.clicked("set/high");
 	}
 
 	class Button {
@@ -101,9 +103,9 @@ public class MainActivity extends Activity {
 			button_view = button;
 		}
 		public void clicked(String value) {
-			Message msg = mChildHandler.obtainMessage();
+			Message msg = mRequestHandler.obtainMessage();
 			msg.obj = value;
-			mChildHandler.sendMessage(msg);
+			mRequestHandler.sendMessage(msg);
 		}
 		public void setColor(int color){
 			this.button_view.getBackground().setColorFilter(color, PorterDuff.Mode.MULTIPLY);
@@ -114,9 +116,7 @@ public class MainActivity extends Activity {
 		public OnButton(android.widget.Button button) {
 			super(button);
 		}
-		
-		
-		
+						
 	}
 
 	class OffButton extends Button {
@@ -134,17 +134,11 @@ public class MainActivity extends Activity {
 		public void run() {
 			this.setName("child");
 			Looper.prepare();
-			mChildHandler = new Handler() {
+			mRequestHandler = new Handler() {
 				public void handleMessage(Message msg) {
-					String s_msg = (String) msg.obj;
-					if (s_msg.equals("high")) {
-						httpget = new HttpGet(
-								"http://home.wangkangle.com/set/high");
-					} else if (s_msg.equals("low")) {
-						httpget = new HttpGet(
-								"http://home.wangkangle.com/set/low");
-					}
-
+					String value = (String) msg.obj;
+					httpget = new HttpGet("http://home.wangkangle.com:8000/"
+							+ value);
 					try {
 						response = httpclient.execute(httpget);
 					} catch (ClientProtocolException e1) {
@@ -161,8 +155,8 @@ public class MainActivity extends Activity {
 						{
 							try {
 								String contents = EntityUtils.toString(entity);
-								Message toMain = mMainHandler.obtainMessage();
-		                        toMain.obj = s_msg + ":" + contents;
+								Message toMain = mMainHandler.obtainMessage();								
+		                        toMain.obj = contents;
 		                        mMainHandler.sendMessage(toMain);
 								
 							} catch (ParseException e) {
@@ -184,4 +178,19 @@ public class MainActivity extends Activity {
 			Looper.loop();
 		}
 	}
+	
+	class Beat {
+		public  Beat() {
+			Timer timer = new Timer();  
+			timer.scheduleAtFixedRate(new TimerTask(){  
+			   public void run()  
+			   {  
+				   Message msg = mRequestHandler.obtainMessage();
+				   msg.obj = "get/";
+				   mRequestHandler.sendMessage(msg);
+			   }  
+			},  new Date(), 3000);
+		}
+	}
+
 }
