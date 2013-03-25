@@ -11,6 +11,8 @@ vol_map = {
 	'high'     : GPIO.HIGH,
 }
 
+gpio_status = 'low'
+
 class index:
     def GET(self):
 	        return "Hello, world!"
@@ -24,17 +26,21 @@ class setvalue:
 	GPIO.setmode(GPIO.BOARD)
 	GPIO.setup(16, GPIO.OUT)
 	GPIO.output(16, vol_map[value])
-	return "Set success";
+	global gpio_status
+        gpio_status = value
+	return gpio_status;
 
     def GET(self, value):
 	GPIO.setmode(GPIO.BOARD)
 	GPIO.setup(16, GPIO.OUT)
 	GPIO.output(16, vol_map[value])
-	return "Set success";
+	global gpio_status
+	gpio_status = value
+	return gpio_status;
 
 class getvalue:
-    def POST(self, path):
-	return "You just post date" + path;
+    def GET(self, value):
+	return gpio_status;
 
 if __name__ == "__main__":
     app = web.application(urls, globals())
