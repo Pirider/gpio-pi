@@ -29,6 +29,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.support.v4.app.NavUtils;
@@ -36,6 +37,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.apache.http.HttpEntity;
@@ -59,6 +61,7 @@ public class MainActivity extends Activity {
 	private Handler mMainHandler, mRequestHandler, mBeatHandler;
 	private OnButton onButton = null;
 	private OffButton offButton = null;
+	private ProgressDialog mypDialog = null;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -66,9 +69,11 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);		
 		onButton = new OnButton((android.widget.Button) findViewById(R.id.button1));
 		offButton = new OffButton((android.widget.Button) findViewById(R.id.button2));
+		
 		mMainHandler = new Handler() {
 			public void handleMessage(Message msg) {
 				String callback_msg = (String) msg.obj;
+				mypDialog.hide();
 				if (callback_msg.equals("high")) {
 					onButton.setColor(GREEN);
 					offButton.setColor(WHITE);
@@ -80,6 +85,25 @@ public class MainActivity extends Activity {
 		};
 		new RequestThread().start();
 		Beat beat = new Beat();
+		
+		mypDialog=new ProgressDialog(this);
+		//实例化
+		mypDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+		//设置进度条风格，风格为圆形，旋转的
+		mypDialog.setTitle("");
+		//设置ProgressDialog 标题
+		mypDialog.setMessage(getResources().getString(R.string.second));
+		//设置ProgressDialog 提示信息
+		mypDialog.setIcon(R.drawable.ic_launcher);
+		//设置ProgressDialog 标题图标
+		//mypDialog.setButton("Google",this);
+		//设置ProgressDialog 的一个Button
+		mypDialog.setIndeterminate(false);
+		//设置ProgressDialog 的进度条是否不明确
+		mypDialog.setCancelable(true);
+		//设置ProgressDialog 是否可以按退回按键取消
+		mypDialog.show();
+		//让ProgressDialog显示	
 	}
 
 	@Override
@@ -90,10 +114,12 @@ public class MainActivity extends Activity {
 	}
  
 	public void OffLed(View view) {
+		mypDialog.show();
 		offButton.clicked("set/low");
 	}
 
 	public void OnLed(View view) {
+		mypDialog.show();
 		onButton.clicked("set/high");
 	}
 
@@ -157,7 +183,7 @@ public class MainActivity extends Activity {
 								String contents = EntityUtils.toString(entity);
 								Message toMain = mMainHandler.obtainMessage();								
 		                        toMain.obj = contents;
-		                        mMainHandler.sendMessage(toMain);
+		                        mMainHandler.sendMessage(toMain);		                       
 								
 							} catch (ParseException e) {
 								// TODO Auto-generated catch block
