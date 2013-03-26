@@ -1,6 +1,7 @@
 package com.example.android_client;
 
 import java.io.IOException;
+import java.net.SocketTimeoutException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -18,6 +19,9 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 import org.apache.http.util.EntityUtils;
 
 import android.R.integer;
@@ -45,6 +49,7 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.ConnectTimeoutException;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 
@@ -58,18 +63,22 @@ import android.widget.Button;
 public class MainActivity extends Activity {
 	private static final int WHITE = 0xFFFFFFFF;
 	private static final int GREEN = 0xFF00FF00;
+	private static final String requestIp= "http://home.wangkangle.com:8000/";
 	private Handler mMainHandler, mRequestHandler, mBeatHandler;
 	private OnButton onButton = null;
 	private OffButton offButton = null;
 	private ProgressDialog mypDialog = null;
+	private RequestThread requestThread;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);	
-		setContentView(R.layout.activity_main);		
-		onButton = new OnButton((android.widget.Button) findViewById(R.id.button1));
-		offButton = new OffButton((android.widget.Button) findViewById(R.id.button2));
-		
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.activity_main);
+		onButton = new OnButton(
+				(android.widget.Button) findViewById(R.id.button1));
+		offButton = new OffButton(
+				(android.widget.Button) findViewById(R.id.button2));
+
 		mMainHandler = new Handler() {
 			public void handleMessage(Message msg) {
 				String callback_msg = (String) msg.obj;
@@ -77,35 +86,49 @@ public class MainActivity extends Activity {
 				if (callback_msg.equals("high")) {
 					onButton.setColor(GREEN);
 					offButton.setColor(WHITE);
-				} else if(callback_msg.equals("low")) {
+				} else if (callback_msg.equals("low")) {
 					offButton.setColor(GREEN);
-					onButton.setColor(WHITE);					
-				}				
+					onButton.setColor(WHITE);
+				}
 			}
 		};
-		new RequestThread().start();
+		requestThread = new RequestThread();
+		requestThread.start();
 		Beat beat = new Beat();
-		
-		mypDialog=new ProgressDialog(this);
-		//实例化
+
+		mypDialog = new ProgressDialog(this);
+		// 实例化
 		mypDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-		//设置进度条风格，风格为圆形，旋转的
+		// 设置进度条风格，风格为圆形，旋转的
 		mypDialog.setTitle("");
-		//设置ProgressDialog 标题
+		// 设置ProgressDialog 标题
 		mypDialog.setMessage(getResources().getString(R.string.second));
-		//设置ProgressDialog 提示信息
+		// 设置ProgressDialog 提示信息
 		mypDialog.setIcon(R.drawable.ic_launcher);
-		//设置ProgressDialog 标题图标
-		//mypDialog.setButton("Google",this);
-		//设置ProgressDialog 的一个Button
+		// 设置ProgressDialog 标题图标
+		// mypDialog.setButton("Google",this);
+		// 设置ProgressDialog 的一个Button
 		mypDialog.setIndeterminate(false);
-		//设置ProgressDialog 的进度条是否不明确
+		// 设置ProgressDialog 的进度条是否不明确
 		mypDialog.setCancelable(true);
-		//设置ProgressDialog 是否可以按退回按键取消
+		// 设置ProgressDialog 是否可以按退回按键取消
 		mypDialog.show();
-		//让ProgressDialog显示	
+		// 让ProgressDialog显示
 	}
 
+	protected void onPause() {
+		super.onPause();
+		requestThread.sending_enable = false;
+		Log.i("PI", "Be paused");
+	}
+	
+	
+	protected void onResume() {
+		super.onResume();
+		requestThread.sending_enable = true;
+		Log.i("PI", "Be resumed");
+	}
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -113,14 +136,16 @@ public class MainActivity extends Activity {
 		return true;
 	}
  
-	public void OffLed(View view) {
+	public void OffLed(View view) {	
 		mypDialog.show();
 		offButton.clicked("set/low");
+		Log.i("EVENT", "Offled clicked");
 	}
 
-	public void OnLed(View view) {
+	public void OnLed(View view) {	
 		mypDialog.show();
 		onButton.clicked("set/high");
+		Log.i("EVENT", "Onled clicked");
 	}
 
 	class Button {
@@ -155,49 +180,74 @@ public class MainActivity extends Activity {
 		private static final String INNER_TAG = "ChildThread";
 		private HttpClient httpclient = new DefaultHttpClient();
 		private HttpGet httpget = null;
-		private HttpResponse response = null;
-
+		private HttpResponse response = null; 
+		private boolean sending_enable = true;
 		public void run() {
 			this.setName("child");
 			Looper.prepare();
 			mRequestHandler = new Handler() {
 				public void handleMessage(Message msg) {
-					String value = (String) msg.obj;
-					httpget = new HttpGet("http://home.wangkangle.com:8000/"
-							+ value);
-					try {
-						response = httpclient.execute(httpget);
-					} catch (ClientProtocolException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+					if (sending_enable) {
+						String value = (String) msg.obj;
+						httpget = new HttpGet(requestIp + value);
+						try {
+							/*
+							 * HttpParams httpParameters = new
+							 * BasicHttpParams(); int timeoutConnection = 3000;
+							 * HttpConnectionParams.setConnectionTimeout
+							 * (httpParameters, timeoutConnection);
+							 * 
+							 * int timeoutSocket = 5000;
+							 * HttpConnectionParams.setSoTimeout(httpParameters,
+							 * timeoutSocket);
+							 * 
+							 * DefaultHttpClient httpClient = new
+							 * DefaultHttpClient(httpParameters);
+							 */
+							response = httpclient.execute(httpget);
+							Log.i("REQUEST", requestIp + value);
+						} catch (ClientProtocolException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						} catch (ConnectTimeoutException e1) {
+							Log.i("Exception", "ConnectTimeoutException");
+						} catch (SocketTimeoutException e1) {
+							Log.i("Exception", "SocketTimeoutException");
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
 
-					HttpEntity entity = response.getEntity();
-					if (entity != null) {
-						long len = entity.getContentLength();
-						{
-							try {
-								String contents = EntityUtils.toString(entity);
-								Message toMain = mMainHandler.obtainMessage();								
-		                        toMain.obj = contents;
-		                        mMainHandler.sendMessage(toMain);		                       
-								
-							} catch (ParseException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (org.apache.http.ParseException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+						HttpEntity entity = response.getEntity();
+						if (entity != null) {
+							long len = entity.getContentLength();
+							{
+								try {
+									String contents = EntityUtils
+											.toString(entity);
+									Message toMain = mMainHandler
+											.obtainMessage();
+									toMain.obj = contents;
+									mMainHandler.sendMessage(toMain);
+
+								} catch (ParseException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (org.apache.http.ParseException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (ConnectTimeoutException e1) {
+									Log.i("Exception",
+											"ConnectTimeoutException");
+								} catch (SocketTimeoutException e1) {
+									Log.i("Exception", "SocketTimeoutException");
+								} catch (IOException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
 							}
 						}
 					}
-
 				}
 
 			};
