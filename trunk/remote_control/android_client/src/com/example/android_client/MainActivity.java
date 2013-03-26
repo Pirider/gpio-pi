@@ -63,7 +63,7 @@ import android.widget.Button;
 public class MainActivity extends Activity {
 	private static final int WHITE = 0xFFFFFFFF;
 	private static final int GREEN = 0xFF00FF00;
-	private static final String requestIp= "http://home.wangkangle.com:8000/";
+	private static final String requestIp= "http://139.226.96.97:8000/";
 	private static final String PI = "PI";
 	private Handler mMainHandler, mRequestHandler, mBeatHandler;
 	private OnButton onButton = null;
