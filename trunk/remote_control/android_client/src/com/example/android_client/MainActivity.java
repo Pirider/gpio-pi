@@ -64,6 +64,7 @@ public class MainActivity extends Activity {
 	private static final int WHITE = 0xFFFFFFFF;
 	private static final int GREEN = 0xFF00FF00;
 	private static final String requestIp= "http://home.wangkangle.com:8000/";
+	private static final String PI = "PI";
 	private Handler mMainHandler, mRequestHandler, mBeatHandler;
 	private OnButton onButton = null;
 	private OffButton offButton = null;
@@ -119,15 +120,35 @@ public class MainActivity extends Activity {
 	protected void onPause() {
 		super.onPause();
 		requestThread.sending_enable = false;
-		Log.i("PI", "Be paused");
+		Log.i(PI, "Be paused");
 	}
 	
 	
 	protected void onResume() {
 		super.onResume();
 		requestThread.sending_enable = true;
-		Log.i("PI", "Be resumed");
+		Log.i(PI, "Be resumed");
 	}
+	
+	protected void onDestory() {
+		super.onDestroy();  
+		Log.i(PI,"App Destroy"); 
+	}
+	
+	public void onStop() {
+		super.onStop();
+		Log.i(PI, "onStop");
+	}
+
+	public void onRestart() {
+		super.onRestart();
+		Log.v(PI, "onReStart");
+	}
+
+	public void onFreeze(Bundle savedInstanceState) {
+
+		Log.v(PI, "onFreeze");
+	} 
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
