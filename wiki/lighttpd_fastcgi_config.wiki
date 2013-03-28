@@ -1,4 +1,6 @@
-reference：http://redmine.lighttpd.net/projects/lighttpd/wiki/Docs_ModFastCGI
+reference：
+http://blog.chinaunix.net/uid-393131-id-2409972.html
+http://redmine.lighttpd.net/projects/lighttpd/wiki/Docs_ModFastCGI
 
 vi lighttpd.conf
 1.添加允许执行的FastCGI扩展名
