@@ -1,0 +1,87 @@
+reference：http://redmine.lighttpd.net/projects/lighttpd/wiki/Docs_ModFastCGI
+
+vi lighttpd.conf
+1.添加允许执行的FastCGI扩展名
+static-file.exclude-extensions = ( ".php", ".pl", ".fcgi" , ".cgi", "fastcgi")
+ 
+2.增加Lighttpd能够解析FastCGI服务的语句
+fastcgi.server            = ( 
+        "/test" => (
+          "test.fastcgi.handler" => (
+     "socket" => "/tmp/test.fastcgi.socket",
+     "check-local" => "disable",
+     "bin-path" => "/data/www/webroot/cgi-bin/test.fastcgi",
+     "min-procs" => 1,
+     "max-procs" => 30,
+     "idle-timeout" => 30
+          )
+        )
+                            )
+3.编写C的FastCGI
+// gcc -I/usr/include/fastcgi -lfcgi testfastcgi.c -o test.fastcgi
+#include <stdlib.h>
+#include <string.h>
+#include <syslog.h>
+#include <alloca.h>
+#include <fcgiapp.h>
+#define LISTENSOCK_FILENO 0
+#define LISTENSOCK_FLAGS 0
+int main(int argc, char** argv) {
+  openlog ("testfastcgi", LOG_CONS|LOG_NDELAY, LOG_USER);
+  int err = FCGX_Init (); /* call before Accept in multithreaded apps */
+  if (err) { syslog (LOG_INFO, "FCGX_Init failed: %d", err); return 1; }
+  FCGX_Request cgi;
+  err = FCGX_InitRequest(&cgi, LISTENSOCK_FILENO, LISTENSOCK_FLAGS);
+  if (err) { syslog (LOG_INFO, "FCGX_InitRequest failed: %d", err); return 2; }
+  while (1) {
+    err = FCGX_Accept_r(&cgi);
+    if (err) { syslog (LOG_INFO, "FCGX_Accept_r stopped: %d", err); break; }
+    char** envp;
+    int size = 200;
+    for (envp = cgi.envp; *envp; ++envp) size += strlen(*envp) + 11;
+    char*  result = (char*) alloca(size);
+    strcpy (result, "Status: 200 OK\r\nContent-Type: text/html\r\n\r\n");
+    strcat (result, "<html><head><title>testcgi</title></head><body><ul>\r\n");
+    for (envp = cgi.envp; *envp; ++envp) {
+      strcat(result, "<li>"); 
+      strcat(result, *envp); 
+      strcat(result, "</li>\r\n");
+    }
+    strcat(result, "</ul></body></html>\r\n");
+    FCGX_PutStr(result, strlen(result), cgi.out);
+    FCGX_Finish_r(&cgi);
+  }
+  FCGX_ShutdownPending();
+  return 0;
+}
+4.编译并运行
+gcc -I/usr/include/fastcgi -lfcgi testfastcgi.c -o test.fastcgi
+在IE中输入:
+http://test.eoa.kdn:8080/test
+如果成功,即可看到如下信息:
+FCGI_ROLE=RESPONDER
+SERVER_SOFTWARE=lighttpd/1.4.22
+SERVER_NAME=test.eoa.kdn:8080
+GATEWAY_INTERFACE=CGI/1.1
+SERVER_PORT=8080
+SERVER_ADDR=102.108.15.119
+REMOTE_PORT=16977
+REMOTE_ADDR=61.135.159.208
+SCRIPT_NAME=/test
+PATH_INFO=
+SCRIPT_FILENAME=/data/www/webroot/test
+DOCUMENT_ROOT=/data/www/webroot
+REQUEST_URI=/test
+QUERY_STRING=
+REQUEST_METHOD=GET
+REDIRECT_STATUS=200
+SERVER_PROTOCOL=HTTP/1.1
+HTTP_ACCEPT=*/*
+HTTP_ACCEPT_LANGUAGE=zh-cn
+HTTP_ACCEPT_ENCODING=gzip, deflate
+HTTP_USER_AGENT=Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; SV1; Maxthon)
+HTTP_HOST=202.108.15.19:8080
+HTTP_CONNECTION=Keep-Alive
+ 
+参考文章:
+http://redmine.lighttpd.net/wiki/1/Docs:ModFastCGI#FastCGI-and-Programming-Languages
