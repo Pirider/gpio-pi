@@ -6,7 +6,7 @@
 #include<netinet/in.h>
 #include<arpa/inet.h>
 
-#define SERV_HOST_ADDR_0 "127.0.0.1"
+#define SERV_HOST_ADDR_0 "106.187.47.234"
 #define SERV_UDP_PORT 6501
 
 int main(int argc, char *argv[]){
