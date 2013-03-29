@@ -36,7 +36,7 @@ SocketManager::SocketManager() {
     notify();
 }
 
-SocketManager::notify() {
+void SocketManager::notify() {
 	for(;;){
 	        n = recvfrom(sockfd, recvline, 512, 0, (struct sockaddr *) &client_addr,  (socklen_t *) &struct_len);
 	        printf("From %s[%d]", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
