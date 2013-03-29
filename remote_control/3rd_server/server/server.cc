@@ -12,25 +12,18 @@ using namespace std;
 #include <ctype.h>
 #define SERV_UDP_PORT 6501
 
-struct MyThreadFunc {
-   void operator( )( ) {
-      // Do something long-running...
-     cout << "test" << endl;  
-   }
-} threadFun;
+class SocketManager {
+    private:
+        int sockfd, n, struct_len, i, str_len;
+        struct sockaddr_in addr;
+        struct sockaddr_in ca;
+        char sendline[512], recvline[513];
 
-int main(){
+    public:
+        SocketManager();
 
-    boost::thread myThread(threadFun);
-    boost::thread::yield( );
-    myThread.join( );
-
-
-    int sockfd, n, struct_len, i, str_len;
-    struct sockaddr_in addr;
-    struct sockaddr_in ca;
-    char sendline[512], recvline[513];
-
+};
+SocketManager::SocketManager() {
     sockfd = socket(AF_INET, SOCK_DGRAM, 0);
     bzero((char *)&addr, sizeof(addr));
     addr.sin_family = AF_INET;
@@ -41,7 +34,6 @@ int main(){
     bind(sockfd, (struct sockaddr *)&addr, sizeof(addr));
 
     for(;;){
-
         n = recvfrom(sockfd, recvline, 512, 0, (struct sockaddr *) &ca,  (socklen_t *) &struct_len);
         printf("From %s[%d]", inet_ntoa(ca.sin_addr), ca.sin_port);
 
@@ -58,4 +50,9 @@ int main(){
         cin >> strs;
         sendto(sockfd, strs.c_str(), strs.length(), 0, (struct sockaddr *)&ca, sizeof(ca));
     }
+}
+
+
+int main(){
+    SocketManager socket_manage;
 }
