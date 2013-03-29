@@ -39,8 +39,6 @@ int main(){
     fputs(recvline, stdout);
     fflush(stdout);
     str_len=strlen(recvline);
-	string str;
-	cin >> str;
-    sendto(sockfd, str.c_str(), str.length(), 0, (struct sockaddr *)&ca, sizeof(ca));
+    sendto(sockfd, recvline, str_len, 0, (struct sockaddr *)&ca, sizeof(ca));
   }
 }

@@ -10,24 +10,19 @@
 #define SERV_UDP_PORT 6501
 
 int main(int argc, char *argv[]){
-char addr[32] = {0};
-strcpy(addr, argv[1]);
-int port = atoi(argv[2]);
 
   int sockfd, str_len, flag, n;
   struct sockaddr_in sa;
   char sendline[512], sendline2[513]="", recvline[513];
 
-/*
   if(argc > 2){
     printf("Please Input Your name!!\n");
     return 1;
   }
-*/
   bzero((char*)&sa, sizeof(sa));
   sa.sin_family = AF_INET;
-  sa.sin_addr.s_addr = inet_addr(addr);
-  sa.sin_port = htons(port);
+  sa.sin_addr.s_addr = inet_addr(SERV_HOST_ADDR_0);
+  sa.sin_port = htons(SERV_UDP_PORT);
 
   sockfd = socket(AF_INET, SOCK_DGRAM, 0);
   flag = 1;
