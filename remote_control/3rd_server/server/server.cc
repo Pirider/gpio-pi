@@ -33,10 +33,10 @@ SocketManager::SocketManager() {
 
     struct_len = sizeof(server_addr);
     bind(sockfd, (struct sockaddr *)&server_addr, sizeof(server_addr));
-    boost::thread thr1(notify);
-    boost::thread thr2(send);
-    thr1.join( );
-    thr2.join( );
+    boost::thread* thr1 = new boost::thread(boost::bind(&SocketManager::notify, this));
+    //boost::thread thr2(send);
+    thr1->join( );
+    //thr2.join( );
 }
 
 void SocketManager::notify() {
