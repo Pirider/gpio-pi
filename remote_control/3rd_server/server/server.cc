@@ -10,7 +10,32 @@ using namespace std;
 #include<netinet/in.h>
 #include<arpa/inet.h>
 #include <ctype.h>
+#include "mongo/client/dbclient.h"
+using namespace mongo;
+using namespace bson;
+class SocketManager;
+class ClientDb;
+
+SocketManager *socket_manage;
+ClientDb *client_db;
+
 #define SERV_UDP_PORT 6501
+class ClientDb {
+    public:
+        ClientDb();
+        void addclient(char *url, int port); 
+    private:
+        mongo::DBClientConnection c;
+};
+
+ClientDb::ClientDb() {
+  c.connect("localhost");
+}
+
+void ClientDb::addclient(char* url, int port) {
+  BSONObj p = BSON( "url" << url << "port" << port );
+  c.insert("gpio_pi.client", p);
+}
 
 class SocketManager {
     private:
@@ -42,8 +67,7 @@ SocketManager::SocketManager() {
 void SocketManager::notify() {
     for(;;){
         n = recvfrom(sockfd, recvline, 512, 0, (struct sockaddr *) &client_addr,  (socklen_t *) &struct_len);
-        //printf("From %s[%d]", inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
-
+        client_db->addclient(inet_ntoa(client_addr.sin_addr), client_addr.sin_port); 
         i=0;
         while(recvline[i] != '\0'){
             recvline[i]=toupper(recvline[i]);
@@ -65,6 +89,8 @@ void SocketManager::send() {
 	}
 }
 
+
 int main(){
-    SocketManager socket_manage;
+    client_db = new ClientDb;
+    socket_manage =  new SocketManager; 
 }

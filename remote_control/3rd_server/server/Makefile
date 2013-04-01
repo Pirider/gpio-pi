@@ -1,5 +1,5 @@
 main:
-	g++ server.cc -o server -lboost_thread
+	g++ -g server.cc -o server -lboost_thread  -pthread -lmongoclient -lboost_thread-mt -lboost_filesystem -lboost_system
 
 mongo:
-	g++ mongodb.cc -pthread -lmongoclient -lboost_thread-mt -lboost_filesystem -lboost_system -o mongo
+	g++ mongodb.cc -pthread -lmongoclient -lboost_thread-mt -lboost_filesystem -lboost_system -o mongodb
