@@ -19,10 +19,15 @@
 #include <cstdlib>
 #include <iostream>
 #include "mongo/client/dbclient.h"
+using namespace mongo;
+using namespace bson;
 
 void run() {
   mongo::DBClientConnection c;
   c.connect("localhost");
+  BSONObj p1 = BSON( "name" << "Joe" << "age" << 33 );
+  BSONObj p = BSON( "name" << p1 << "age" << 33 );
+  c.insert("tutorial.persons.Joe", p);
 }
 
 int main() {
