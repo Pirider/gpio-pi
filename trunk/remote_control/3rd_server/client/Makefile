@@ -1,2 +1,2 @@
 main:
-	gcc client.c
+	g++ client.cc -o client
