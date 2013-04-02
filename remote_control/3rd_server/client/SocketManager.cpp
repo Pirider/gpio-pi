@@ -7,6 +7,7 @@
 
 #include "SocketManager.h"
 
+
 SocketManager::~SocketManager() {
 	// TODO Auto-generated destructor stub
 }
@@ -21,16 +22,17 @@ SocketManager::SocketManager() {
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	flag = 1;
 
-	Poco::RunnableAdapter<SocketManager> runnable1(*this,
+	//Poco::RunnableAdapter<SocketManager> runnable1(*this, &SocketManager::send);
+	Timer timer(250, 500);
+	timer.start(TimerCallback<SocketManager>(*this, &SocketManager::send));
+
+	Poco::RunnableAdapter<SocketManager> runnable2(*this,
 			&SocketManager::notify);
-	Poco::RunnableAdapter<SocketManager> runnable2(*this, &SocketManager::send);
 
-	Poco::Thread thread1;
-	thread1.start(runnable1);
-	thread1.join();
-
-	Poco::Thread thread2;
+	Poco::Thread thread1, thread2;;
+	//thread1.start(runnable1);
 	thread2.start(runnable2);
+	//thread1.join();
 	thread2.join();
 
 }
@@ -46,19 +48,21 @@ void SocketManager::notify() {
 	}
 }
 
-void SocketManager::send() {
+void SocketManager::send(Timer& timer) {
 	for (;;) {
-		printf("Send -->");
+		/*
+		cout << "Send strs->" << endl;
 		fgets(sendline, 512, stdin);
 
-		/*if (argv[1] != NULL) {
-			strcpy(sendline2, argv[1]);
-			strcat(sendline2, sendline);
-		} else */{
+
 			strcpy(sendline2, sendline);
-		}
+		*/
+		string me = "wangkangluo1";
+
+
 		str_len = strlen(sendline2);
-		sendto(sockfd, sendline2, str_len, 0, (struct sockaddr *) &sa,
+
+		sendto(sockfd, me.c_str(), me.length(), 0, (struct sockaddr *) &sa,
 				sizeof(sa));
 	}
 }

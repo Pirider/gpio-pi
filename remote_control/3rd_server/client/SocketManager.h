@@ -14,9 +14,14 @@
 #include<strings.h>
 #include "Poco/Thread.h"
 #include "Poco/RunnableAdapter.h"
-
+#include "Poco/Timer.h"
+#include "Poco/Stopwatch.h"
 
 using namespace std;
+using Poco::Timer;
+using Poco::TimerCallback;
+using Poco::Thread;
+using Poco::Stopwatch;
 
 #ifndef SOCKETMANAGER_H_
 #define SOCKETMANAGER_H_
@@ -31,7 +36,7 @@ private:
 	  char sendline[512], sendline2[513], recvline[513];
 
 	void notify();
-	void send();
+	void send(Timer& timer);
 
 public:
 	SocketManager();
