@@ -26,10 +26,10 @@ using namespace std;
 
 class SocketManager {
 private:
-	int sockfd, n, struct_len, i, str_len;
-	struct sockaddr_in server_addr;
-	struct sockaddr_in client_addr;
-	char sendline[512], recvline[513];
+	int sockfd, str_len, flag, n;
+	  struct sockaddr_in sa;
+	  char sendline[512], sendline2[513], recvline[513];
+
 	void notify();
 	void send();
 
