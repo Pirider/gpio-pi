@@ -1,2 +1,2 @@
 main:
-	g++ client.cc -o client -lPocoFoundation 
+	g++ client.cpp SocketManager.cpp -o client -lPocoFoundation 
