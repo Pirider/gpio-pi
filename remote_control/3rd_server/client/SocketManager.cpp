@@ -22,7 +22,7 @@ SocketManager::SocketManager() {
 	flag = 1;
 
 	Timer timer(0, 5000);
-	timer.start(TimerCallback<SocketManager>(*this, &SocketManager::send));
+	timer.start(TimerCallback<SocketManager>(*this, &SocketManager::beat));
 	Poco::RunnableAdapter<SocketManager> runnable(*this,
 			&SocketManager::notify);
 	Poco::Thread thread;
@@ -41,10 +41,12 @@ void SocketManager::notify() {
 	}
 }
 
+void SocketManager::beat(Timer& timer) {
+	string id = "100000000-0000-0000-0000-00000001";
+	send(id);
+}
 
-void SocketManager::send(Timer& timer) {
-		string me = "wangkangluo1";
-		str_len = strlen(sendline2);
-		sendto(sockfd, me.c_str(), me.length(), 0, (struct sockaddr *) &sa,
+void SocketManager::send(string &msg) {
+		sendto(sockfd, msg.c_str(), msg.length(), 0, (struct sockaddr *) &sa,
 				sizeof(sa));
 }

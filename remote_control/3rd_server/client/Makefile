@@ -1,2 +1,2 @@
 main:
-	g++ client.cpp SocketManager.cpp -o client -lPocoFoundation 
+	g++ client.cpp SocketManager.cpp Pi.cpp Log.cpp -o client -lPocoFoundation -lwiringPi
