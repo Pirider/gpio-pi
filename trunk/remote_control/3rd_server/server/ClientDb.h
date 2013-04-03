@@ -19,7 +19,7 @@ using namespace bson;
 class ClientDb {
 	 public:
         ClientDb();
-        void addclient(char *url, int port);
+        void addclient(char * id, char *url, int port);
     private:
         mongo::DBClientConnection c;
 public:

@@ -28,16 +28,8 @@ SocketManager::SocketManager() {
 void SocketManager::notify() {
     for(;;){
         n = recvfrom(sockfd, recvline, 512, 0, (struct sockaddr *) &client_addr,  (socklen_t *) &struct_len);
-        client_db->addclient(inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
-        i=0;
-        while(recvline[i] != '\0'){
-            recvline[i]=toupper(recvline[i]);
-            i++;
-        }
         recvline[n]=0;
-        fputs(recvline, stdout);
-        fflush(stdout);
-        str_len=strlen(recvline);
+        client_db->addclient(recvline, inet_ntoa(client_addr.sin_addr), client_addr.sin_port);
     }
 }
 

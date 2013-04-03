@@ -16,7 +16,14 @@ ClientDb::ClientDb() {
   c.connect("localhost");
 }
 
-void ClientDb::addclient(char* url, int port) {
-  BSONObj p = BSON( "url" << url << "port" << port );
-  c.insert("gpio_pi.client", p);
+void ClientDb::addclient(char *id, char* url, int port) {
+	auto_ptr<DBClientCursor> cursor = c.query("gpio_pi.client", QUERY("url" << url));
+	while (cursor->more()) {
+	    BSONObj p = cursor->next();
+	    cout << p.getStringField("url") << endl;
+	    return;
+	}
+
+	BSONObj p = BSON("id" << id << "url" << url << "port" << port);
+	c.insert("gpio_pi.client", p);
 }
