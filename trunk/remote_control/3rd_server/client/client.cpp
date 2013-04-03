@@ -1,5 +1,4 @@
 
-
 #include "Poco/Thread.h"
 #include "Poco/RunnableAdapter.h"
 #include "SocketManager.h"
@@ -16,6 +15,7 @@ Log *log = NULL;
 
 int main(int argc, char *argv[]){
 	log = new Log();
+	log->info("wangkangluo1");
 	SocketManager socket_manager;
 	pi = new Pi();
 }

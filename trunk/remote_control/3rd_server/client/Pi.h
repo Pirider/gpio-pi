@@ -8,8 +8,6 @@
 #ifndef PI_H_
 #define PI_H_
 
-#include <wiringPi.h>
-
 class Pi {
 public:
 	Pi();
