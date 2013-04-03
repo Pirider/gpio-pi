@@ -34,9 +34,9 @@ private:
 	int sockfd, str_len, flag, n;
 	  struct sockaddr_in sa;
 	  char sendline[512], sendline2[513], recvline[513];
-
 	void notify();
-	void send(Timer& timer);
+	void send(string &msg);
+	void beat(Timer& timer);
 
 public:
 	SocketManager();
