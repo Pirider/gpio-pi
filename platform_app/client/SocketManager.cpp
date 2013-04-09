@@ -21,9 +21,9 @@ SocketManager::SocketManager() {
 	sockfd = socket(AF_INET, SOCK_DGRAM, 0);
 	flag = 1;
 
-	//Timer timer(0, 5000);
+	Timer timer(0, 5000);
 
-	//timer.start(TimerCallback<SocketManager>(*this, &SocketManager::beat));
+	timer.start(TimerCallback<SocketManager>(*this, &SocketManager::beat));
 	Poco::RunnableAdapter<SocketManager> runnable(*this,
 			&SocketManager::notify);
 	Poco::Thread thread;
