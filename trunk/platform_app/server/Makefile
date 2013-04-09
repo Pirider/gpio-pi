@@ -1,5 +1,21 @@
-main:
-	g++ -g server.cc ClientDb.cpp SocketManager.cpp -o server -lboost_thread  -pthread -lmongoclient -lboost_thread-mt -lboost_filesystem -lboost_system
+CC=g++
+CFLAGS=-c -g
+LDFLAGS=-lPocoUtil -lPocoXML -lPocoFoundation -lboost_thread  -pthread -lmongoclient -lboost_thread-mt -lboost_filesystem -lboost_system
+SOURCES=server.cc\
+ClientDb.cpp\
+SocketManager.cpp
 
-mongo:
-	g++ mongodb.cc -pthread -lmongoclient -lboost_thread-mt -lboost_filesystem -lboost_system -o mongodb
+OBJECTS=$(SOURCES:.cpp=.o)
+EXECUTABLE=server
+
+all: $(SOURCES) $(EXECUTABLE)
+	
+$(EXECUTABLE): $(OBJECTS) 
+	$(CC)  $(OBJECTS) -o $@ $(LDFLAGS)
+
+.cpp.o:
+	$(CC) $(CFLAGS) $< -o $@
+
+clean:
+	rm -rf *o server
+	

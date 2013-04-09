@@ -21,6 +21,7 @@ void ClientDb::addclient(char *id, char* url, int port) {
 	while (cursor->more()) {
 	    BSONObj p = cursor->next();
 	    cout << p.getStringField("url") << endl;
+	    cout << "exit" << endl;
 	    return;
 	}
 
